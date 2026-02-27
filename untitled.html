@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masterclass : Création & Recyclage de Contenu IA (TikTok, Insta)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0f172a;
+            --ink-soft: #334155;
+            --ink-muted: #64748b;
+            --surface: #f8fafc;
+            --pink-primary: #ec4899;
+            --purple-primary: #8b5cf6;
+            --fuchsia-primary: #d946ef;
+            --radius-xl: 28px;
+            --slide-transition: 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+            background-color: var(--surface);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- BACKGROUNDS & BLOBS --- */
+        .blob {
+            position: fixed; filter: blur(100px); z-index: 0; opacity: 0.4;
+            animation: blobFloat 18s infinite ease-in-out; pointer-events: none;
+        }
+        .blob-1 { top: -15%; left: -10%; width: 550px; height: 550px; background: radial-gradient(circle, #fce7f3 0%, #fdf2f8 100%); animation-delay: 0s; }
+        .blob-2 { bottom: -15%; right: -10%; width: 650px; height: 650px; background: radial-gradient(circle, #f3e8ff 0%, #faf5ff 100%); animation-delay: 6s; }
+        .blob-3 { top: 35%; left: 45%; width: 350px; height: 350px; background: radial-gradient(circle, #fae8ff 0%, #fdf4ff 100%); animation-delay: 3s; opacity: 0.5; }
+        
+        @keyframes blobFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(25px, 40px) scale(1.03); }
+            66% { transform: translate(-15px, 20px) scale(0.97); }
+        }
+
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.3; background-size: 60px 60px;
+            background-image: linear-gradient(to right, rgba(236, 72, 153, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(236, 72, 153, 0.05) 1px, transparent 1px);
+        }
+
+        /* --- SLIDE SYSTEM --- */
+        .slide {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            opacity: 0; pointer-events: none; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 2rem; z-index: 1;
+            transition: opacity var(--slide-transition), transform var(--slide-transition), filter var(--slide-transition);
+            transform: scale(0.97) translateY(16px); filter: blur(4px);
+        }
+        .slide.active { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); filter: blur(0px); z-index: 10; }
+
+        .anim { opacity: 0; transform: translateY(22px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+        .active .anim { opacity: 1; transform: translateY(0); }
+        .d1 { transition-delay: 100ms; } .d2 { transition-delay: 180ms; } .d3 { transition-delay: 260ms; } .d4 { transition-delay: 340ms; } .d5 { transition-delay: 420ms; }
+
+        /* --- CARDS & GLASSMORPHISM (ZÉRO BORDURE) --- */
+        .glass {
+            background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); border: none;
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08); border-radius: var(--radius-xl);
+        }
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(24px); border: none;
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.12); border-radius: var(--radius-xl);
+        }
+        .logo-box {
+            background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); border: none;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08); border-radius: 20px; padding: 15px 30px;
+        }
+
+        /* --- NAVIGATION --- */
+        .nav-btn {
+            padding: 14px; border-radius: 50%; border: none; cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; outline: none; background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+        }
+        .nav-prev { color: var(--ink-muted); }
+        .nav-prev:hover { color: var(--pink-primary); background: #f8fafc; transform: translateX(-2px); }
+        .nav-next { background: var(--ink); color: white; box-shadow: 0 4px 20px rgba(236,72,153,0.3); }
+        .nav-next:hover { background: var(--pink-primary); transform: scale(1.05); }
+        
+        .progress-track { height: 4px; background: #e2e8f0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--fuchsia-primary), var(--pink-primary)); transition: width 0.4s ease; }
+
+        /* --- UI ELEMENTS --- */
+        .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 999px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; border: none; }
+        .content-scroll { max-height: 80vh; overflow-y: auto; padding-right: 1rem; scrollbar-width: thin; }
+        
+        /* Quiz */
+        .quiz-option { width: 100%; padding: 16px; border-radius: 16px; background: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.04); text-align: left; transition: all 0.2s; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--ink-soft); font-size: 0.95rem; }
+        .quiz-option:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(236,72,153,0.15); color: var(--pink-primary); }
+        .quiz-option.correct { background: #dcfce7; color: #166534; box-shadow: inset 0 0 0 3px #22c55e, 0 8px 20px rgba(34, 197, 94, 0.15); }
+        .quiz-option.wrong { background: #fee2e2; color: #991b1b; opacity: 0.7; box-shadow: inset 0 0 0 3px #ef4444; }
+        
+        .builder-step { cursor: pointer; transition: 0.3s; opacity: 0.5; border: none; }
+        .builder-step.active { opacity: 1; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+    <div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div><div class="bg-grid"></div>
+
+    <nav class="fixed bottom-6 right-6 z-50 flex items-center gap-4">
+        <span id="slideCounter" class="font-mono text-sm font-bold text-slate-400 mr-2">01 / 43</span>
+        <button onclick="prevSlide()" class="nav-btn nav-prev"><i data-lucide="arrow-left" width="20"></i></button>
+        <button onclick="nextSlide()" class="nav-btn nav-next"><i data-lucide="arrow-right" width="20"></i></button>
+    </nav>
+    <div class="fixed bottom-0 left-0 w-full progress-track z-50"><div id="progress" class="progress-fill" style="width:0%"></div></div>
+
+    <section class="slide active">
+        <div class="anim glass p-5 rounded-full mb-8 shadow-sm flex gap-3 text-pink-500">
+            <i data-lucide="instagram" width="36" height="36"></i>
+            <i data-lucide="music-2" width="36" height="36"></i>
+            <i data-lucide="linkedin" width="36" height="36"></i>
+        </div>
+        <div class="max-w-4xl text-center">
+            <div class="anim d1 badge bg-pink-50 text-pink-700 mb-6 shadow-sm">
+                Guide Pratique Débutants
+            </div>
+            <h1 class="anim d2 text-5xl md:text-7xl font-black tracking-tight leading-none mb-6 text-slate-900">
+                La machine à <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-fuchsia-600">Contenus</span>.
+            </h1>
+            <p class="anim d3 text-xl text-slate-500 font-medium max-w-2xl mx-auto mt-6 leading-relaxed">
+                Apprenez à utiliser l'IA pour créer des vidéos virales et <span class="bg-white px-3 py-1 rounded-lg shadow-sm text-slate-800 mx-1 font-bold">recycler à l'infini</span> vos idées sur tous les réseaux sociaux.
+            </p>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-6xl w-full">
+            <h2 class="anim d1 text-4xl font-bold mb-10 text-center text-slate-900">Le Programme de la Masterclass</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="anim d2 glass p-5"><div class="text-slate-400 font-black text-xl mb-1">M1</div><h3 class="font-bold text-sm text-slate-800">Le Constat</h3><p class="text-[10px] text-slate-500">Burnout & Algorithmes.</p></div>
+                <div class="anim d3 glass p-5"><div class="text-slate-500 font-black text-xl mb-1">M2</div><h3 class="font-bold text-sm text-slate-800">L'Idéation</h3><p class="text-[10px] text-slate-500">Trouver des angles uniques.</p></div>
+                <div class="anim d4 glass-strong p-5 shadow-lg transform scale-105"><div class="text-pink-500 font-black text-xl mb-1">M3</div><h3 class="font-bold text-sm text-pink-800">Le Hook & Script</h3><p class="text-[10px] text-slate-500">Capter l'attention vite.</p></div>
+                <div class="anim d5 glass-strong p-5 shadow-lg"><div class="text-fuchsia-500 font-black text-xl mb-1">M4</div><h3 class="font-bold text-sm text-fuchsia-800">La Dérive</h3><p class="text-[10px] text-slate-500">Recycler à l'infini.</p></div>
+                <div class="anim d6 glass p-5"><div class="text-blue-500 font-black text-xl mb-1">M5</div><h3 class="font-bold text-sm text-slate-800">Visuels</h3><p class="text-[10px] text-slate-500">Prompter des images.</p></div>
+                <div class="anim d6 glass p-5"><div class="text-red-500 font-black text-xl mb-1">M6</div><h3 class="font-bold text-sm text-slate-800">L'Authenticité</h3><p class="text-[10px] text-slate-500">Ne pas parler comme un robot.</p></div>
+                <div class="anim d6 glass p-5"><div class="text-emerald-500 font-black text-xl mb-1">M7</div><h3 class="font-bold text-sm text-slate-800">Atelier Pratique</h3><p class="text-[10px] text-slate-500">La Fabrique à post.</p></div>
+                <div class="anim d6 glass p-5 bg-pink-50/50"><div class="text-pink-700 font-black text-xl mb-1">M8</div><h3 class="font-bold text-sm text-slate-800">Le Grand Quiz</h3><p class="text-[10px] text-slate-500">10 questions de test.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <div class="anim d1 badge bg-slate-200 text-slate-700 mb-4">Module 1 : Le Constat</div>
+            <h2 class="anim d2 text-5xl font-bold mb-10 text-slate-900">Les Règles ont changé.</h2>
+            <div class="anim d3 glass-strong p-10 shadow-lg max-w-3xl mx-auto">
+                <p class="text-xl text-slate-700 leading-relaxed font-medium">
+                    Avant, il fallait créer un bon contenu par semaine. Aujourd'hui, il faut publier tous les jours sur 4 plateformes différentes pour exister.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-10 text-slate-900">Le "Burnout" du Créateur</h2>
+            <div class="grid md:grid-cols-2 gap-8 items-center text-left max-w-4xl mx-auto">
+                <div class="anim d2 glass p-8 opacity-80 shadow-sm">
+                    <i data-lucide="battery-warning" class="text-red-500 mb-4" width="40" height="40"></i>
+                    <h3 class="font-bold text-xl mb-2 text-slate-800">La méthode artisanale</h3>
+                    <p class="text-sm text-slate-600">Penser à une idée, écrire un script, filmer, monter, écrire la description... Recommencer tous les jours. C'est épuisant et intenable.</p>
+                </div>
+                <div class="anim d3 glass-strong p-8 shadow-xl">
+                    <i data-lucide="factory" class="text-pink-600 mb-4" width="40" height="40"></i>
+                    <h3 class="font-bold text-xl mb-2 text-slate-800">La "Content Factory"</h3>
+                    <p class="text-sm text-slate-600">Les pros utilisent des process industriels. Ils créent 1 gros contenu par semaine, et l'IA le découpe et le réécrit pour toutes les plateformes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">L'Algorithme (Le monstre affamé)</h2>
+            <p class="anim d2 text-slate-600 mb-10 max-w-3xl mx-auto text-lg">TikTok, Instagram, LinkedIn... Leur seul but est de garder l'utilisateur sur l'application.</p>
+            
+            <div class="anim d3 glass-strong p-10 max-w-4xl mx-auto shadow-lg text-left flex items-center gap-8">
+                <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                    <i data-lucide="eye" width="32" height="32"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Le Watch Time (Temps de visionnage)</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                        Si les gens quittent votre vidéo au bout de 2 secondes, l'algorithme "tue" votre portée. L'IA va nous aider à optimiser chaque seconde de notre script pour retenir l'attention.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Votre nouvelle approche</h2>
+            <div class="anim d2 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto text-left">
+                <div class="glass p-6 shadow-sm">
+                    <div class="text-3xl font-black text-slate-300 mb-2">1</div>
+                    <h4 class="font-bold text-slate-800">Idéation IA</h4>
+                    <p class="text-xs text-slate-600">Trouver l'angle qui choque.</p>
+                </div>
+                <div class="glass p-6 shadow-sm">
+                    <div class="text-3xl font-black text-slate-300 mb-2">2</div>
+                    <h4 class="font-bold text-slate-800">Scripting IA</h4>
+                    <p class="text-xs text-slate-600">Structurer pour retenir l'attention.</p>
+                </div>
+                <div class="glass-strong p-6 shadow-md transform scale-105">
+                    <div class="text-3xl font-black text-pink-300 mb-2">3</div>
+                    <h4 class="font-bold text-pink-800">Recyclage IA</h4>
+                    <p class="text-xs text-slate-600 font-bold">Multiplier la présence.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <div class="anim d1 badge bg-fuchsia-50 text-fuchsia-700 mb-4">Module 2 : L'Idéation</div>
+            <h2 class="anim d2 text-5xl font-bold mb-10 text-slate-900">Comment trouver la bonne idée ?</h2>
+            <div class="anim d3 glass p-10 max-w-3xl mx-auto shadow-md">
+                <p class="text-lg text-slate-700 leading-relaxed font-medium">
+                    Ne laissez pas l'IA choisir le sujet pour vous. L'IA lisse les idées pour qu'elles plaisent à la majorité, produisant des concepts ennuyeux.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">L'erreur classique du Prompt</h2>
+            <div class="anim d2 glass-strong p-8 max-w-3xl mx-auto text-left shadow-lg">
+                <div class="bg-red-50 p-4 rounded-xl text-sm font-mono text-red-800 mb-4 shadow-inner">
+                    Prompt : "Donne-moi 5 idées de vidéos sur le Fitness."
+                </div>
+                <p class="text-sm font-bold text-slate-800 mb-2">Résultat (Catastrophique) :</p>
+                <ul class="text-xs text-slate-600 space-y-2 italic">
+                    <li>1. 3 astuces pour perdre du ventre.</li>
+                    <li>2. Ma routine matinale sportive.</li>
+                    <li>3. Comment bien faire des pompes.</li>
+                </ul>
+                <p class="text-[10px] text-red-500 font-bold mt-4 uppercase">Pourquoi c'est nul ? Parce que ce contenu existe déjà 1 million de fois sur TikTok.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">La méthode "Contre-Courant" (Contrarian)</h2>
+            <div class="grid md:grid-cols-2 gap-8 text-left max-w-4xl mx-auto">
+                <div class="anim d2 glass p-8 opacity-80 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-800 mb-2">Idée "Bateau" (Ignorée)</h3>
+                    <div class="bg-slate-50 p-4 rounded-xl text-sm italic text-slate-600 shadow-inner mb-2">"3 astuces pour être plus productif le matin."</div>
+                    <p class="text-xs text-slate-500 font-medium">L'utilisateur scrolle sans s'arrêter.</p>
+                </div>
+                <div class="anim d3 glass-strong p-8 shadow-xl">
+                    <h3 class="font-bold text-lg text-fuchsia-800 mb-2">Idée "Contrarian" (Virale)</h3>
+                    <div class="bg-fuchsia-50 p-4 rounded-xl text-sm font-medium text-fuchsia-900 shadow-inner mb-2">"Pourquoi se lever à 5h du matin détruit votre productivité."</div>
+                    <p class="text-xs text-slate-700 font-bold">Cela choque et contredit la pensée populaire. L'utilisateur s'arrête net.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">D'autres exemples d'angles</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto text-left">
+                <div class="anim d2 glass p-6 shadow-sm">
+                    <h4 class="font-bold text-slate-800 mb-2">L'Ennemi Commun</h4>
+                    <p class="text-xs text-slate-600 italic">"Ce que les banques vous cachent sur vos crédits immobiliers."</p>
+                </div>
+                <div class="anim d3 glass p-6 shadow-sm">
+                    <h4 class="font-bold text-slate-800 mb-2">Le Mythe Détruit</h4>
+                    <p class="text-xs text-slate-600 italic">"Le mythe des 10 000 pas par jour est une invention marketing."</p>
+                </div>
+                <div class="anim d4 glass p-6 shadow-sm">
+                    <h4 class="font-bold text-slate-800 mb-2">L'Aveu de Faiblesse</h4>
+                    <p class="text-xs text-slate-600 italic">"J'ai perdu 10 000€ en Bourse. Voici mes 3 erreurs."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Le Prompt d'Idéation</h2>
+            <div class="anim d2 glass-strong p-8 max-w-3xl mx-auto text-left shadow-lg">
+                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">La formule exacte pour générer des angles uniques :</p>
+                <div class="bg-slate-900 text-green-400 p-6 rounded-xl font-mono text-sm leading-relaxed shadow-inner">
+                    "Agis comme un producteur de contenu TikTok. Mon sujet est [VOTRE SUJET].<br><br>
+                    Donne-moi 5 idées de vidéos avec un angle 'Contre-courant' (qui va à l'encontre de ce que tout le monde dit).<br>
+                    Pour chaque idée, donne un titre choc et la frustration client que ça résout."
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <div class="anim d1 badge bg-pink-50 text-pink-700 mb-4">Module 3 : Le Script</div>
+            <h2 class="anim d2 text-5xl font-black mb-8 text-slate-900">Capter l'attention</h2>
+            <div class="anim d3 glass p-10 max-w-3xl mx-auto shadow-md">
+                <p class="text-lg text-slate-700 leading-relaxed font-medium">
+                    Vous avez votre idée. Maintenant, il faut l'écrire. Mais un script vidéo ne s'écrit pas comme une dissertation scolaire. Il a des règles très strictes.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">La Règle des 3 Secondes</h2>
+            <div class="anim d2 glass-strong p-10 max-w-4xl mx-auto shadow-xl flex items-center gap-8 text-left">
+                <div class="w-24 h-24 bg-pink-50 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                    <i data-lucide="timer" class="text-pink-500" width="40" height="40"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Le HOOK (L'accroche)</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        C'est la toute première phrase de votre vidéo ou de votre post.<br>Si votre Hook est mauvais, l'utilisateur passe à la vidéo suivante en 1 seconde. Les 5 heures de montage prévues derrière ne servent absolument à rien.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">L'anatomie d'un bon Hook</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl text-left">
+                <div class="anim d2 glass p-8 shadow-sm">
+                    <h3 class="font-bold text-lg mb-2 text-slate-800">1. Le Choc visuel</h3>
+                    <p class="text-xs text-slate-600">Le mouvement de caméra, l'objet insolite à l'écran, ou le texte gros et agressif.</p>
+                </div>
+                <div class="anim d3 glass-strong p-8 shadow-md transform scale-105">
+                    <h3 class="font-bold text-lg mb-2 text-pink-800">2. La Promesse</h3>
+                    <p class="text-xs text-slate-600">Donner exactement ce que le viewer va gagner ("Voici l'erreur qui vous empêche de...").</p>
+                </div>
+                <div class="anim d4 glass p-8 shadow-sm">
+                    <h3 class="font-bold text-lg mb-2 text-slate-800">3. La Boucle ouverte</h3>
+                    <p class="text-xs text-slate-600">Ne jamais donner la réponse dans le Hook. Créer un mystère pour forcer à attendre la fin.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Demandez des Hooks à l'IA</h2>
+            <div class="anim d2 glass-strong p-8 max-w-3xl mx-auto shadow-md text-left">
+                <p class="text-sm text-slate-600 mb-4 font-bold">Au lieu de demander un script complet d'un coup, commencez par le Hook :</p>
+                <div class="bg-slate-50 p-4 rounded-xl text-sm font-mono text-slate-700 shadow-inner mb-4">
+                    "Propose-moi 5 Hooks très agressifs pour mon idée de vidéo. Ils doivent faire moins de 10 mots et contenir le mot 'Erreur'."
+                </div>
+                <ul class="text-xs text-slate-500 space-y-2 pl-4 border-l-2 border-pink-400">
+                    <li>"L'erreur stupide qui tue vos plantes."</li>
+                    <li>"Vous faites cette erreur tous les matins."</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Framework de Script : A.I.D.A</h2>
+            <p class="anim d2 text-slate-600 mb-8 max-w-3xl mx-auto">Une fois le Hook validé, obligez l'IA à utiliser une structure narrative prouvée dans le prompt pour le reste de la vidéo.</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-5xl text-left anim d3">
+                <div class="glass p-5 shadow-sm">
+                    <h3 class="font-black text-xl text-pink-500 mb-1">A</h3>
+                    <p class="font-bold text-sm text-slate-800">Attention</p>
+                    <p class="text-[10px] text-slate-500 mt-2">Le fameux Hook.</p>
+                </div>
+                <div class="glass p-5 shadow-sm">
+                    <h3 class="font-black text-xl text-fuchsia-500 mb-1">I</h3>
+                    <p class="font-bold text-sm text-slate-800">Intérêt</p>
+                    <p class="text-[10px] text-slate-500 mt-2">Garder le viewer avec des faits.</p>
+                </div>
+                <div class="glass p-5 shadow-sm">
+                    <h3 class="font-black text-xl text-purple-500 mb-1">D</h3>
+                    <p class="font-bold text-sm text-slate-800">Désir</p>
+                    <p class="text-[10px] text-slate-500 mt-2">La solution à son problème.</p>
+                </div>
+                <div class="glass p-5 shadow-sm">
+                    <h3 class="font-black text-xl text-blue-500 mb-1">A</h3>
+                    <p class="font-bold text-sm text-slate-800">Action</p>
+                    <p class="text-[10px] text-slate-500 mt-2">"Abonne-toi", "Lien en bio".</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Le Prompt du Scénariste</h2>
+            <p class="anim d2 text-slate-600 mb-6 max-w-2xl mx-auto">L'IA est excellente pour formater un script sous forme de Tableau visuel.</p>
+            
+            <div class="anim d3 glass-strong p-6 max-w-4xl mx-auto shadow-xl text-left">
+                <div class="bg-slate-900 text-white p-4 rounded-xl font-mono text-xs leading-relaxed mb-6 shadow-inner">
+                    "Rédige le script de 45s en suivant le framework AIDA.<br>Fais un tableau avec 3 colonnes :<br>1. Temps (Secondes)<br>2. Audio (Ce que je dis, ton punchy)<br>3. Visuel (Ce qu'on voit à l'écran)"
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Le Résultat du Tableau</h2>
+            
+            <div class="anim d2 glass-strong p-6 max-w-4xl mx-auto shadow-lg text-left overflow-hidden">
+                <table class="w-full text-xs bg-white rounded-lg shadow-sm">
+                    <thead class="bg-pink-50 text-pink-800 font-bold">
+                        <tr><th class="p-4 text-left">Temps</th><th class="p-4 text-left">Audio (Voix)</th><th class="p-4 text-left">Visuel (Ce que je filme)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-slate-100"><td class="p-4 font-bold">0:00 - 0:03</td><td class="p-4">"Arrêtez d'acheter des plantes si vous faites ça."</td><td class="p-4 text-slate-500">Gros plan : Plante morte, texte rouge vif.</td></tr>
+                        <tr><td class="p-4 font-bold">0:03 - 0:10</td><td class="p-4">"Vous les noyez. Voici la technique du doigt..."</td><td class="p-4 text-slate-500">Zoom sur le terreau de la plante.</td></tr>
+                    </tbody>
+                </table>
+                <p class="text-[10px] text-slate-400 font-bold mt-4 uppercase text-center">Facilite énormément le tournage (On sait quoi filmer).</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <div class="anim d1 badge bg-purple-50 text-purple-700 mb-4">Module 4 : Le Recyclage</div>
+            <h2 class="anim d2 text-5xl font-black mb-8 text-slate-900">La Dérive (Waterfall)</h2>
+            <div class="anim d3 glass p-10 max-w-3xl mx-auto shadow-md">
+                <i data-lucide="repeat" class="mx-auto text-purple-500 mb-6" width="48" height="48"></i>
+                <p class="text-lg text-slate-700 leading-relaxed font-medium">
+                    Ne créez jamais un contenu pour <strong>une seule</strong> plateforme.<br>
+                    Créez 1 contenu principal (Pilier), et utilisez l'IA pour générer 20 contenus <strong>dérivés</strong> adaptés à chaque réseau social.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">La Philosophie de l'Effort</h2>
+            <div class="anim d2 glass-strong p-10 max-w-3xl mx-auto shadow-xl text-left border-l-4 border-purple-500">
+                <h3 class="text-xl font-bold text-slate-800 mb-4">Penser grand, agir petit.</h3>
+                <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                    Il est beaucoup plus facile de prendre une vidéo de 10 minutes (qui contient beaucoup d'informations) et de demander à l'IA de la résumer en posts courts... <br><br>Que de demander à l'IA d'inventer de longs posts à partir de rien (Hallucination).
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-6xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-10 text-slate-900">L'Écosystème du Recyclage</h2>
+            
+            <div class="anim d2 flex flex-col md:flex-row items-center justify-center gap-6 max-w-5xl mx-auto">
+                <div class="glass-strong p-8 text-center w-64 shadow-xl border-t-4 border-red-500 z-10">
+                    <i data-lucide="youtube" class="mx-auto text-red-500 mb-4" width="32" height="32"></i>
+                    <h3 class="font-bold text-slate-800">Contenu Pilier</h3>
+                    <p class="text-xs text-slate-500 mt-2">Vidéo longue (YouTube / Podcast).</p>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <i data-lucide="arrow-right" class="text-slate-300"></i>
+                    <span class="badge bg-purple-100 text-purple-700 text-[10px] my-2">L'IA découpe</span>
+                    <i data-lucide="arrow-right" class="text-slate-300"></i>
+                </div>
+                
+                <div class="flex flex-col gap-4 text-left">
+                    <div class="glass p-4 w-64 flex items-center gap-4 shadow-sm">
+                        <i data-lucide="instagram" class="text-pink-500"></i>
+                        <div><p class="font-bold text-sm">3 Reels / TikTok</p></div>
+                    </div>
+                    <div class="glass p-4 w-64 flex items-center gap-4 shadow-sm">
+                        <i data-lucide="linkedin" class="text-blue-600"></i>
+                        <div><p class="font-bold text-sm">2 Posts LinkedIn</p></div>
+                    </div>
+                    <div class="glass p-4 w-64 flex items-center gap-4 shadow-sm">
+                        <i data-lucide="twitter" class="text-sky-500"></i>
+                        <div><p class="font-bold text-sm">1 Thread X</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">La clé : La Transcription</h2>
+            <p class="anim d2 text-slate-600 mb-8 max-w-2xl mx-auto">Vous avez fait un vocal ou une vidéo ? Il faut d'abord le transformer en texte brut pour que ChatGPT puisse le lire.</p>
+            
+            <div class="anim d3 glass-strong p-8 max-w-4xl mx-auto shadow-md text-left flex items-center gap-8">
+                <div class="w-24 h-24 bg-slate-900 text-white rounded-2xl flex items-center justify-center shrink-0">
+                    <i data-lucide="mic" width="40" height="40"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">L'outil magique : Whisper</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                        C'est une IA qui convertit n'importe quel audio en texte parfait, en enlevant les "euh" et les bégaiements. 
+                        Vous copiez ce texte (Le Transcript) et vous le donnez à ChatGPT.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Le Prompt du Recyclage</h2>
+            <div class="anim d2 glass-strong p-8 max-w-4xl mx-auto text-left shadow-lg">
+                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Copiez le Transcript et ajoutez :</p>
+                <div class="bg-slate-900 text-fuchsia-400 p-6 rounded-xl font-mono text-sm leading-relaxed shadow-inner">
+                    "Agis comme un Social Media Manager.<br>
+                    Lis la transcription de ma vidéo YouTube ci-dessous.<br><br>
+                    1. Rédige 2 posts LinkedIn impactants basés UNIQUEMENT sur ces idées.<br>
+                    2. Rédige 1 description courte (Caption) pour Instagram.<br>
+                    3. Extrais la citation la plus choquante du texte pour en faire une image (Quote)."
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">L'art du Thread (Séquence)</h2>
+            <div class="anim d2 glass p-8 max-w-3xl mx-auto shadow-sm text-left">
+                <h3 class="font-bold text-lg text-slate-800 mb-4">Pour LinkedIn ou Twitter :</h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    "Transforme ce texte en un Thread de 5 étapes. Chaque étape doit faire moins de 280 caractères. La première étape doit être un Hook qui donne envie de lire la suite."
+                </p>
+                <div class="bg-blue-50 p-4 rounded text-xs text-blue-800 italic shadow-inner">
+                    Le recyclage parfait : On garde la valeur d'origine, on adapte juste le format au réseau visé.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <div class="anim d1 badge bg-blue-50 text-blue-700 mb-4">Module 5 : L'Image</div>
+            <h2 class="anim d2 text-5xl font-black mb-8 text-slate-900">Le Prompting Visuel</h2>
+            <div class="anim d3 glass p-10 max-w-3xl mx-auto shadow-md">
+                <p class="text-lg text-slate-700 leading-relaxed font-medium">
+                    Midjourney, DALL-E, ou Flux... Demander une belle image à une IA demande une syntaxe complètement différente du texte.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">L'erreur : L'Image "3D Lisse"</h2>
+            <div class="grid md:grid-cols-2 gap-8 text-left max-w-4xl mx-auto">
+                <div class="anim d2 glass p-8 opacity-80 shadow-sm border border-transparent">
+                    <h3 class="font-bold text-lg text-slate-800 mb-2">Prompt Amateur</h3>
+                    <div class="bg-slate-50 p-4 rounded-xl text-sm italic text-slate-600 shadow-inner mb-2 border border-transparent">"Dessine-moi un chat mignon avec un café."</div>
+                    <p class="text-[10px] font-bold text-red-500 uppercase mt-4">Résultat : L'IA fera un dessin 3D basique qui fait "faux" et robotique.</p>
+                </div>
+                <div class="anim d3 glass-strong p-8 shadow-xl">
+                    <h3 class="font-bold text-lg text-slate-800 mb-2">La règle</h3>
+                    <p class="text-sm text-slate-600">L'IA génératrice d'image réagit comme un véritable <strong>appareil photo</strong>. Il faut lui donner des consignes de photographie.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Le Prompt Photographe</h2>
+            <div class="anim d2 glass-strong p-8 max-w-4xl mx-auto shadow-lg text-left border-l-4 border-blue-500">
+                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">La syntaxe parfaite :</p>
+                <div class="bg-blue-50 p-6 rounded-xl font-mono text-sm leading-relaxed text-blue-900 border border-transparent">
+                    "[Sujet principal] + [Environnement] + [Appareil Photo] + [Lumière] + [Style]"<br><br>
+                    <strong>Exemple :</strong> "Un petit chat roux buvant un espresso sur une table de café parisien. Prise de vue reflex 35mm, lumière naturelle du matin, flou en arrière-plan (bokeh), qualité 4k, hyper-réaliste."
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">L'impact des détails techniques</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-5xl text-left anim d2">
+                <div class="glass p-5 shadow-sm">
+                    <h3 class="font-bold text-sm text-slate-800 mb-1">Lumière</h3>
+                    <p class="text-[10px] text-slate-500">Golden hour, Cinematic lighting, Neon.</p>
+                </div>
+                <div class="glass p-5 shadow-sm">
+                    <h3 class="font-bold text-sm text-slate-800 mb-1">Focale</h3>
+                    <p class="text-[10px] text-slate-500">Macro lens, Wide angle, GoPro style.</p>
+                </div>
+                <div class="glass p-5 shadow-sm">
+                    <h3 class="font-bold text-sm text-slate-800 mb-1">Style</h3>
+                    <p class="text-[10px] text-slate-500">Cyberpunk, Polaroid 1990s, Polaroid.</p>
+                </div>
+                <div class="glass p-5 shadow-sm">
+                    <h3 class="font-bold text-sm text-slate-800 mb-1">Qualité</h3>
+                    <p class="text-[10px] text-slate-500">8k, Unreal Engine 5, Highly detailed.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <div class="anim d1 badge bg-emerald-50 text-emerald-700 mb-4">Module 6 : Rester Humain</div>
+            <h2 class="anim d2 text-5xl font-black mb-8 text-slate-900">Le fléau du "Ton IA"</h2>
+            <div class="anim d3 glass p-10 max-w-3xl mx-auto shadow-md">
+                <p class="text-lg text-slate-700 leading-relaxed font-medium">
+                    Aujourd'hui, tout le monde repère un post écrit par ChatGPT. Les tournures de phrases sont pompeuses, pleines d'emojis, et manquent d'âme. Ça détruit votre crédibilité.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Les Mots Interdits</h2>
+            <div class="anim d2 glass-strong p-8 max-w-3xl mx-auto text-left shadow-lg">
+                <h3 class="font-bold text-slate-800 mb-4">L'IA adore ces expressions (À bannir) :</h3>
+                <div class="flex flex-wrap gap-3">
+                    <span class="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm font-bold shadow-sm">"Dans le monde en constante évolution..."</span>
+                    <span class="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm font-bold shadow-sm">"Révolutionnaire"</span>
+                    <span class="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm font-bold shadow-sm">"Plongeons dans le vif du sujet"</span>
+                    <span class="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm font-bold shadow-sm">"En conclusion"</span>
+                    <span class="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm font-bold shadow-sm">"🚀 (Trop d'emojis)"</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">La Règle du Nettoyage</h2>
+            <div class="anim d2 glass p-8 max-w-3xl mx-auto text-left shadow-md">
+                <p class="text-sm text-slate-600 mb-4 font-bold">Ajoutez toujours cette instruction anti-IA à la fin de vos prompts :</p>
+                <div class="bg-slate-50 p-4 rounded-xl text-sm font-mono text-slate-700 shadow-inner">
+                    "Relis ton texte. Supprime tous les mots jargonneux, les expressions clichées et les emojis. Rends le texte 100% naturel."
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">Comment forcer un style humain ?</h2>
+            <div class="anim d2 glass-strong p-8 max-w-3xl mx-auto text-left shadow-lg border-l-4 border-emerald-500">
+                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Contraintes strictes de formatage :</p>
+                <div class="bg-emerald-50 p-6 rounded-xl text-sm leading-relaxed text-emerald-900 font-medium border border-transparent">
+                    <ul class="space-y-3">
+                        <li>• "Adopte un ton conversationnel, comme si tu parlais à un ami."</li>
+                        <li>• "Fais des phrases très courtes et rythmées."</li>
+                        <li>• "Ne mets <strong>AUCUN emoji</strong>."</li>
+                        <li>• "N'écris pas de phrase de conclusion formelle."</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <h2 class="anim d1 text-4xl font-bold mb-8 text-slate-900">L'IA ne remplace pas l'Humain</h2>
+            <div class="anim d2 glass-strong p-10 max-w-3xl mx-auto shadow-xl">
+                <p class="text-xl text-slate-800 font-bold mb-4">Le "Storytelling" (Le vécu)</p>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    L'IA peut structurer un post, trouver un Hook et corriger vos fautes. Mais <strong>elle n'a pas vécu vos expériences</strong>.<br><br>
+                    Le meilleur contenu restera toujours : <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded">Votre anecdote réelle + La structure parfaite de l'IA</span>.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-5xl w-full text-center">
+            <div class="anim d1 badge bg-slate-900 text-white mb-4">Module 7 : Atelier Pratique</div>
+            <h2 class="anim d2 text-5xl font-black mb-8 text-slate-900">La Fabrique à Posts</h2>
+            <div class="anim d3 glass p-10 max-w-3xl mx-auto shadow-md">
+                <p class="text-lg text-slate-700 leading-relaxed font-medium">
+                    Nous allons utiliser les 4 étapes du framework R.O.C.F pour construire le prompt parfait de recyclage de contenu.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="anim d1 text-center text-3xl font-bold mb-6">Tutoriel : Prompt "La Dérive"</h2>
+        <p class="anim d2 text-center text-slate-500 mb-8">Cliquez pour configurer le Prompt Parfait pour vos réseaux.</p>
+        
+        <div class="anim d3 glass-strong p-0 w-full max-w-4xl flex flex-col md:flex-row h-[420px] overflow-hidden shadow-xl mx-auto border-none">
+            <div class="w-full md:w-1/3 bg-slate-50 p-6 flex flex-col gap-3 border-r border-slate-200">
+                <button class="builder-step active quiz-option text-sm" onclick="buildPrompt(1, this)"><span class="font-bold text-slate-400">R</span> Rôle (Réseau)</button>
+                <button class="builder-step quiz-option text-sm" onclick="buildPrompt(2, this)"><span class="font-bold text-slate-400">O</span> Objectif</button>
+                <button class="builder-step quiz-option text-sm" onclick="buildPrompt(3, this)"><span class="font-bold text-slate-400">C</span> Contexte</button>
+                <button class="builder-step quiz-option text-sm" onclick="buildPrompt(4, this)"><span class="font-bold text-slate-400">F</span> Format</button>
+            </div>
+            <div class="w-full md:w-2/3 bg-slate-900 p-8 flex flex-col relative text-left overflow-y-auto">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Prompt Généré :</div>
+                <div id="builder-output" class="text-sm text-slate-300 font-mono leading-relaxed space-y-3">
+                    <span id="bp-r" class="block transition-all duration-500 text-blue-400 bg-blue-900/30 p-2 rounded">"Tu es un créateur influent sur LinkedIn."</span>
+                    <span id="bp-o" class="block transition-all duration-500 opacity-0 translate-y-2 text-fuchsia-400 bg-fuchsia-900/30 p-2 rounded">"Lis la transcription de la vidéo YouTube ci-dessous et fais-en un post court."</span>
+                    <span id="bp-c" class="block transition-all duration-500 opacity-0 translate-y-2 text-amber-400 bg-amber-900/30 p-2 rounded">"L'accroche (Hook) doit être choquante et aller contre la pensée populaire."</span>
+                    <span id="bp-f" class="block transition-all duration-500 opacity-0 translate-y-2 text-emerald-400 bg-emerald-900/30 p-2 rounded">"Ton direct, phrases courtes, aucun emoji, aucune conclusion clichée."</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="anim text-center text-4xl font-bold mb-10">Résumé : L'Idéation</h2>
+        <div class="anim d1 glass-strong p-10 max-w-3xl mx-auto shadow-md text-left">
+            <p class="text-lg text-slate-700 font-medium">Ne demandez pas d'idées "classiques". Demandez des idées à <strong>contre-courant</strong> (Contrarian) pour créer de la viralité et du débat.</p>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="anim text-center text-4xl font-bold mb-10">Résumé : Le Hook</h2>
+        <div class="anim d1 glass-strong p-10 max-w-3xl mx-auto shadow-md text-left">
+            <p class="text-lg text-slate-700 font-medium">Les 3 premières secondes sont vitales. Si c'est ennuyeux, l'algorithme vous tue (Watch Time). Demandez à l'IA : "Écris 3 Hooks choc visuels."</p>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="anim text-center text-4xl font-bold mb-10">Résumé : Le Script</h2>
+        <div class="anim d1 glass-strong p-10 max-w-3xl mx-auto shadow-md text-left">
+            <p class="text-lg text-slate-700 font-medium">Forcez un format Tableau. Colonne 1: Temps. Colonne 2: Audio (Ce que je dis). Colonne 3: Visuel (Ce que je montre à l'écran).</p>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="anim text-center text-4xl font-bold mb-10">Résumé : La Dérive</h2>
+        <div class="anim d1 glass-strong p-10 max-w-3xl mx-auto shadow-md text-left">
+            <p class="text-lg text-slate-700 font-medium">L'usine à contenu. 1 contenu long (Vidéo YouTube) = 1 Transcript (via Whisper) = 20 Posts pour LinkedIn, Twitter, TikTok grâce à l'IA.</p>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="anim text-center text-4xl font-bold mb-10">Résumé : L'Authenticité</h2>
+        <div class="anim d1 glass-strong p-10 max-w-3xl mx-auto shadow-md text-left">
+            <p class="text-lg text-slate-700 font-medium">L'IA écrit comme un robot par défaut. Ajoutez toujours une règle de nettoyage : "Phrases courtes, ton conversationnel, zéro emoji, pas de mots pompeux."</p>
+        </div>
+    </section>
+
+    <section class="slide" id="quiz-intro">
+        <div class="max-w-5xl w-full text-center">
+            <div class="anim d1 badge bg-blue-100 text-blue-700 mb-4">Module 8 : Validation</div>
+            <h2 class="anim d2 text-5xl font-black mb-8 text-slate-900">Le Quiz des Créateurs</h2>
+            <div class="anim d3 glass-strong p-10 max-w-2xl mx-auto shadow-2xl">
+                <i data-lucide="award" class="mx-auto text-blue-600 mb-6" width="64" height="64"></i>
+                <p class="text-lg text-slate-600 font-medium mb-8">
+                    10 questions pour valider votre niveau en création de contenu IA.
+                </p>
+                <button onclick="nextSlide()" class="px-8 py-4 bg-slate-900 text-white rounded-full font-bold shadow-lg hover:scale-105 transition border-none">
+                    Démarrer le Quiz
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide" id="quiz-slide">
+        <div class="w-full max-w-4xl">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-3xl font-bold text-slate-900">Quiz Content IA</h2>
+                <div class="badge bg-slate-800 text-white shadow-sm py-1.5 px-3 text-xs border-none">
+                    <span id="quiz-level" class="text-pink-300 mr-2">Q1</span> | 
+                    <span id="quiz-progress" class="text-pink-300 ml-2">1/10</span>
+                </div>
+            </div>
+
+            <div class="glass-strong p-8 relative flex flex-col shadow-2xl border-none">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-slate-100 rounded-t-xl overflow-hidden">
+                    <div id="quiz-inner-bar" class="h-full bg-pink-500 transition-all duration-300" style="width: 10%"></div>
+                </div>
+
+                <div class="mb-6 mt-4">
+                    <h3 id="quiz-question" class="text-xl font-bold text-slate-900 leading-snug">Question...</h3>
+                </div>
+
+                <div id="quiz-options" class="space-y-3 flex-1">
+                    </div>
+
+                <div id="quiz-feedback-container" class="mt-6 p-5 rounded-xl hidden items-start gap-4 shadow-md">
+                    <div id="quiz-feedback-icon" class="shrink-0 mt-1"></div>
+                    <div>
+                        <h4 id="quiz-feedback-title" class="font-bold text-lg mb-1"></h4>
+                        <p id="quiz-feedback-text" class="text-sm font-medium leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button id="quiz-next-btn" onclick="loadNextQuestion()" class="hidden px-8 py-3 bg-slate-900 text-white rounded-full font-bold text-sm hover:bg-pink-600 transition shadow-lg flex items-center gap-2 border-none">
+                        Question Suivante <i data-lucide="arrow-right" size="16"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <div class="max-w-4xl text-center">
+            <div class="anim d1 p-5 bg-white/60 rounded-3xl mb-8 backdrop-blur shadow-lg inline-block border-none">
+                <i data-lucide="smartphone" class="text-pink-600" width="48" height="48"></i>
+            </div>
+            <h2 class="anim d2 text-5xl font-black mb-6 text-center text-slate-900">L'Usine est prête.</h2>
+            <p class="anim d3 text-xl text-slate-600 mb-12 text-center leading-relaxed max-w-2xl mx-auto">
+                Ne vous épuisez plus à chercher des idées tous les matins. <br>Bâtissez un système. Créez 1 fois, recyclez 10 fois.
+            </p>
+            <div class="anim d4 flex justify-center gap-4">
+                <button onclick="goToSlide(0)" class="px-10 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-pink-600 transition flex items-center gap-3 shadow-xl transform hover:scale-105 border-none">
+                    <i data-lucide="rotate-ccw" width="18"></i> Revoir la Masterclass
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+    (function() {
+        'use strict';
+        lucide.createIcons();
+
+        // ---- SLIDE NAVIGATION ----
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('slideCounter');
+        const progress = document.getElementById('progress');
+        let currentSlideIdx = 0;
+        const totalSlides = slides.length; // Will be exactly 43
+
+        function updateSlide() {
+            slides.forEach((s, i) => s.classList.toggle('active', i === currentSlideIdx));
+            if(counter) counter.innerText = `${String(currentSlideIdx + 1).padStart(2, '0')} / ${totalSlides}`;
+            if(progress) progress.style.width = `${((currentSlideIdx + 1) / totalSlides) * 100}%`;
+        }
+
+        window.nextSlide = () => { if(currentSlideIdx < totalSlides - 1) { currentSlideIdx++; updateSlide(); } };
+        window.prevSlide = () => { if(currentSlideIdx > 0) { currentSlideIdx--; updateSlide(); } };
+        window.goToSlide = (n) => { currentSlideIdx = n; updateSlide(); };
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowRight' || e.key === ' ') { 
+                if(document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "BUTTON") {
+                    e.preventDefault(); nextSlide(); 
+                }
+            }
+            if(e.key === 'ArrowLeft') { 
+                if(document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "BUTTON") {
+                    e.preventDefault(); prevSlide(); 
+                }
+            }
+        });
+
+        let touchStartX = 0;
+        document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+        document.addEventListener('touchend', e => {
+            if(touchStartX - e.changedTouches[0].screenX > 50) nextSlide();
+            if(e.changedTouches[0].screenX - touchStartX > 50) prevSlide();
+        }, {passive: true});
+
+        // ---- BUILDER INTERACTIF (SLIDE 35) ----
+        window.buildPrompt = (step, btn) => {
+            const map = { 1: 'bp-r', 2: 'bp-o', 3: 'bp-c', 4: 'bp-f' };
+            const el = document.getElementById(map[step]);
+            document.querySelectorAll('.builder-step').forEach(b => {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        };
+
+        // ---- MEGA QUIZ DATA (10 QUESTIONS) ----
+        const quizData = [
+            {
+                level: "Q1",
+                question: "Quelle est l'erreur principale quand on demande des idées de vidéos à ChatGPT ?",
+                options: [
+                    { text: "Lui parler en français au lieu de l'anglais.", isCorrect: false },
+                    { text: "Lui demander simplement 'Donne-moi 5 idées'. Il sortira les choses les plus clichées.", isCorrect: true },
+                    { text: "Lui demander des titres trop courts.", isCorrect: false }
+                ],
+                feedback: "Pour être viral, il faut demander des idées 'Contre-courant' ou préciser le problème exact de votre niche."
+            },
+            {
+                level: "Q2",
+                question: "Qu'est-ce qu'un 'Hook' (accroche) sur TikTok/Instagram ?",
+                options: [
+                    { text: "Le hashtag utilisé à la fin de la vidéo.", isCorrect: false },
+                    { text: "La conclusion avec l'appel à l'action (Abonne-toi).", isCorrect: false },
+                    { text: "Les 3 premières secondes cruciales pour empêcher l'utilisateur de scroller.", isCorrect: true }
+                ],
+                feedback: "L'algorithme analyse le Watch Time. Si le Hook est nul, la vidéo meurt instantanément."
+            },
+            {
+                level: "Q3",
+                question: "Que signifie la stratégie de 'La Dérive' (Content Repurposing) ?",
+                options: [
+                    { text: "Copier le contenu des concurrents pour faire les mêmes vues.", isCorrect: false },
+                    { text: "Créer 1 contenu long pilier et utiliser l'IA pour le découper en 20 contenus courts.", isCorrect: true },
+                    { text: "Payer pour des publicités afin de dériver du trafic vers son site.", isCorrect: false }
+                ],
+                feedback: "C'est l'Usine à contenu. 1 vidéo YouTube devient 3 TikTok, 1 Thread Twitter, et 2 posts LinkedIn."
+            },
+            {
+                level: "Q4",
+                question: "Comment extraire facilement le texte d'un audio ou d'une vidéo YouTube ?",
+                options: [
+                    { text: "Avec l'outil Whisper (ou MacWhisper) pour obtenir une transcription parfaite.", isCorrect: true },
+                    { text: "En écoutant et tapant à la main.", isCorrect: false },
+                    { text: "En demandant à ChatGPT de regarder la vidéo (il ne peut pas le faire directement).", isCorrect: false }
+                ],
+                feedback: "Whisper transcrit l'audio. Ensuite, vous donnez ce texte (Transcript) à ChatGPT pour le recycler."
+            },
+            {
+                level: "Q5",
+                question: "Quel est le meilleur moyen de formater un script vidéo avec l'IA ?",
+                options: [
+                    { text: "Lui demander de faire de longues phrases sans ponctuation.", isCorrect: false },
+                    { text: "Lui demander de créer un Tableau avec 2 colonnes : Audio (Voix) et Visuel (Ce qu'on voit).", isCorrect: true },
+                    { text: "Lui demander de n'écrire que les hashtags.", isCorrect: false }
+                ],
+                feedback: "Le tableau (Audio/Visuel) permet de savoir exactement ce que vous devez filmer et dire à chaque seconde."
+            },
+            {
+                level: "Q6",
+                question: "Pourquoi les posts LinkedIn écrits par IA se remarquent tout de suite ?",
+                options: [
+                    { text: "Parce que l'IA fait souvent des fautes d'orthographe.", isCorrect: false },
+                    { text: "À cause du 'Tone of Voice' : mots pompeux (plongeons, révolutionnaire) et trop d'emojis.", isCorrect: true },
+                    { text: "Parce qu'ils sont toujours trop courts.", isCorrect: false }
+                ],
+                feedback: "Il faut FORCER l'IA dans le prompt à ne PAS utiliser d'emojis et à adopter un ton de discussion normal."
+            },
+            {
+                level: "Q7",
+                question: "Dans le framework de script A.I.D.A., que signifie le 'D' ?",
+                options: [
+                    { text: "Dérive", isCorrect: false },
+                    { text: "Désir", isCorrect: true },
+                    { text: "Durée", isCorrect: false }
+                ],
+                feedback: "Attention, Intérêt, Désir (montrer la solution à leur problème), Action (Lien en bio)."
+            },
+            {
+                level: "Q8",
+                question: "Quel est le rôle du 'Prompt d'idéation contre-courant' ?",
+                options: [
+                    { text: "Choquer l'audience en disant l'inverse de la pensée populaire pour capter l'attention.", isCorrect: true },
+                    { text: "Être d'accord avec tout le monde pour ne pas faire de vagues.", isCorrect: false },
+                    { text: "Parler d'un sujet qui n'a rien à voir avec votre niche.", isCorrect: false }
+                ],
+                feedback: "Le Contrarian Marketing crée du débat dans les commentaires, ce qui booste l'algorithme."
+            },
+            {
+                level: "Q9",
+                question: "Quand vous demandez une image à Midjourney/DALL-E, quelle est la règle d'or ?",
+                options: [
+                    { text: "Faire des phrases très courtes ('un chat').", isCorrect: false },
+                    { text: "Être précis sur la photographie : lentille, éclairage (bokeh), style (réaliste).", isCorrect: true },
+                    { text: "Ne pas préciser les couleurs.", isCorrect: false }
+                ],
+                feedback: "L'IA image réagit comme un appareil photo. Plus vous décrivez la lumière et la focale, plus l'image fera 'Vraie'."
+            },
+            {
+                level: "Q10",
+                question: "Au final, l'IA remplace-t-elle l'humain dans la création de contenu ?",
+                options: [
+                    { text: "Oui, à 100%. L'humain n'a plus rien à faire.", isCorrect: false },
+                    { text: "Non, c'est l'humain qui apporte le vécu (Storytelling). L'IA n'est qu'un super-monteur et scripteur.", isCorrect: true },
+                    { text: "L'IA est interdite sur les réseaux.", isCorrect: false }
+                ],
+                feedback: "Félicitations ! L'IA recycle et met en forme. Mais l'expérience vécue reste humaine."
+            }
+        ];
+
+        let currentQuizIdx = 0;
+
+        const elLevel = document.getElementById('quiz-level');
+        const elProgressText = document.getElementById('quiz-progress');
+        const elBar = document.getElementById('quiz-inner-bar');
+        const elQuestion = document.getElementById('quiz-question');
+        const elOptionsBox = document.getElementById('quiz-options');
+        const elFeedbackBox = document.getElementById('quiz-feedback-container');
+        const elFeedbackIcon = document.getElementById('quiz-feedback-icon');
+        const elFeedbackTitle = document.getElementById('quiz-feedback-title');
+        const elFeedbackText = document.getElementById('quiz-feedback-text');
+        const elNextBtn = document.getElementById('quiz-next-btn');
+
+        function renderQuiz() {
+            const q = quizData[currentQuizIdx];
+            
+            elLevel.innerText = q.level;
+            elProgressText.innerText = `${currentQuizIdx + 1}/${quizData.length}`;
+            elBar.style.width = `${((currentQuizIdx + 1) / quizData.length) * 100}%`;
+            
+            elQuestion.innerText = q.question;
+            
+            elOptionsBox.innerHTML = '';
+            const labels = ['A', 'B', 'C'];
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option';
+                btn.innerHTML = `<span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 font-bold flex items-center justify-center shrink-0 option-letter text-sm border-none shadow-sm">${labels[idx]}</span> <span>${opt.text}</span>`;
+                btn.onclick = () => handleAnswer(btn, opt.isCorrect, q.feedback);
+                elOptionsBox.appendChild(btn);
+            });
+
+            elFeedbackBox.classList.add('hidden');
+            elNextBtn.classList.add('hidden');
+        }
+
+        function handleAnswer(clickedBtn, isCorrect, feedbackMsg) {
+            const allBtns = document.querySelectorAll('.quiz-option');
+            allBtns.forEach(b => { b.disabled = true; if(b !== clickedBtn) b.style.opacity = '0.4'; });
+
+            const letter = clickedBtn.querySelector('.option-letter');
+            
+            if(isCorrect) {
+                clickedBtn.classList.add('correct');
+                letter.classList.replace('bg-slate-100', 'bg-green-200');
+                letter.classList.replace('text-slate-500', 'text-green-800');
+                
+                elFeedbackBox.className = 'mt-6 p-5 rounded-xl flex items-start gap-4 bg-emerald-50 text-emerald-900 shadow-sm border-none';
+                elFeedbackIcon.innerHTML = '<i data-lucide="check-circle" size="24" class="text-emerald-600 mt-0.5"></i>';
+                elFeedbackTitle.innerText = "Exactement !";
+            } else {
+                clickedBtn.classList.add('wrong');
+                letter.classList.replace('bg-slate-100', 'bg-red-200');
+                letter.classList.replace('text-slate-500', 'text-red-800');
+
+                // Reveal correct
+                allBtns.forEach(b => {
+                    const textSpan = b.querySelectorAll('span')[1];
+                    const optObj = quizData[currentQuizIdx].options.find(o => o.text === textSpan.innerText);
+                    if(optObj && optObj.isCorrect) {
+                        b.style.opacity = '1';
+                        b.classList.add('bg-green-50/50');
+                        b.style.boxShadow = 'inset 0 0 0 3px #22c55e';
+                    }
+                });
+
+                elFeedbackBox.className = 'mt-6 p-5 rounded-xl flex items-start gap-4 bg-red-50 text-red-900 shadow-sm border-none';
+                elFeedbackIcon.innerHTML = '<i data-lucide="x-circle" size="24" class="text-red-600 mt-0.5"></i>';
+                elFeedbackTitle.innerText = "Attention à l'erreur !";
+            }
+
+            elFeedbackText.innerHTML = feedbackMsg;
+            elFeedbackBox.classList.remove('hidden');
+
+            if (currentQuizIdx < quizData.length - 1) {
+                elNextBtn.innerHTML = 'Question Suivante <i data-lucide="arrow-right" size="16"></i>';
+            } else {
+                elNextBtn.innerHTML = 'Terminer la formation <i data-lucide="award" size="16"></i>';
+            }
+            elNextBtn.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        window.loadNextQuestion = () => {
+            if (currentQuizIdx < quizData.length - 1) {
+                currentQuizIdx++;
+                renderQuiz();
+            } else {
+                elQuestion.innerText = "Masterclass Validée !";
+                elOptionsBox.innerHTML = `
+                    <div class="text-center py-10">
+                        <div class="w-24 h-24 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner"><i data-lucide="award" size="48"></i></div>
+                        <p class="text-2xl text-slate-800 font-bold mb-2">Vous êtes paré.</p>
+                        <p class="text-slate-500 font-medium">Bâtissez votre usine à contenu.</p>
+                    </div>
+                `;
+                elFeedbackBox.classList.add('hidden');
+                elNextBtn.classList.add('hidden');
+                lucide.createIcons();
+            }
+        };
+
+        // Init
+        updateSlide();
+        renderQuiz();
+    })();
+    </script>
+</body>
+</html>
